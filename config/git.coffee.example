@@ -1,0 +1,5 @@
+# git configuration
+
+module.exports =
+  repo: "git@github.com:username/repository.git"
+  dir: "/path/to/my/repo/locally"
