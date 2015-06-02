@@ -52,7 +52,11 @@ walk = (tree, cb) ->
 
         console.log "compiling #{sourceFile} to /#{target}"
 
-        renderFile target, sourceFile
+        tree.getLayout (err, layout) ->
+          if err
+            return error = err
+          else
+            renderFile target, sourceFile, layout
 
   return cb error if error
 

@@ -56,6 +56,19 @@ class Folder
   getChild: (child) ->
     new Folder @, child, path.resolve @dir, child
 
+  getLayout: (cb) ->
+    layout = path.resolve @dir, '_layout.coffee'
+    fs.stat layout, (err, stats) ->
+      if err
+        unless @parent
+          cb null, (d) -> d
+          return
+
+        @parent.getLayout cb
+
+      else
+        cb null, require layout
+
   getChildren: (cb) ->
     me = @
     @walk (err) ->

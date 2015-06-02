@@ -14,7 +14,7 @@ module.exports =
   render: render = (source) ->
     md.render source
 
-  renderFile: (dir, file, cb) ->
+  renderFile: (dir, file, layout, cb) ->
     throwError = (err) ->
       return cb err if cb
       throw err
@@ -40,7 +40,7 @@ module.exports =
       fs.readFile file, (err, data) ->
         return throwError new Error err if err
 
-        rendered = render data.toString()
+        rendered = layout render data.toString()
 
         fs.writeFile targetFile, rendered, (err) ->
           return throwError new Error err if err
