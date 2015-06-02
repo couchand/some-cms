@@ -11,3 +11,7 @@ module.exports =
     /^index\.md$/
 
   ]
+
+  assets: [
+    /\.png$/
+  ]

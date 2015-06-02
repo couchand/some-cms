@@ -12,7 +12,7 @@
 
 path = require 'path'
 
-{extension, patterns} = require './search'
+{extension, patterns, assets} = require './search'
 {renderFile} = require './markdown'
 {copyFile} = require './cp'
 
@@ -42,7 +42,7 @@ walk = (tree, cb) ->
         sourceFile = path.resolve tree.dir, selectedEntry
         target = tree.getPath()
 
-        console.log "copying #{sourceFile} to #{target}"
+        console.log "copying #{sourceFile} to /#{target}"
 
         copyFile sourceFile, target, selectedEntry
 
@@ -57,6 +57,17 @@ walk = (tree, cb) ->
             return error = err
           else
             renderFile target, sourceFile, layout
+
+    return if error
+
+    for asset in assets
+      for entry in entries when asset.test entry
+        sourceFile = path.resolve tree.dir, entry
+        target = tree.getPath()
+
+        console.log "copying asset #{sourceFile} to #{target}/#{entry}"
+
+        copyFile sourceFile, target, entry
 
   return cb error if error
 
