@@ -15,8 +15,15 @@ path = require 'path'
 {extension, patterns, assets} = require './search'
 {renderFile} = require './markdown'
 {copyFile} = require './cp'
+{clear} = require './static-cache'
 
 walk = (tree, cb) ->
+  clear (error) ->
+    return cb error if error
+
+    doWalk tree, cb or ->
+
+doWalk = (tree, cb) ->
   error = no
 
   tree.getEntries (err, entries) ->
