@@ -18,7 +18,11 @@ openOrClone = (cb) ->
     if err
       console.log 'cloning'
 
-      Git.Clone gitconfig.repo, gitdir
+      options =
+        remoteCallbacks: credentials: (url, userName) ->
+          Git.Cred.sshKeyFromAgent userName
+
+      Git.Clone gitconfig.repo, gitdir, options
         .then (repository) ->
           console.log repository
           cb null, repository
