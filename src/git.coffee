@@ -18,13 +18,14 @@ openOrClone = (cb) ->
 
   gitdir = path.resolve gitconfig.dir
 
+  callbacks = credentials: (url, userName) ->
+      Git.Cred.sshKeyFromAgent userName
+  options =
+    remoteCallbacks: callbacks
+
   fs.stat gitdir, (err, stats) ->
     if err
       debug "cloning into #{gitdir}"
-
-      options =
-        remoteCallbacks: credentials: (url, userName) ->
-          Git.Cred.sshKeyFromAgent userName
 
       Git.Clone gitconfig.repo, gitdir, options
         .then (repository) ->
@@ -37,7 +38,22 @@ openOrClone = (cb) ->
 
       Git.Repository.open gitdir
         .then (repository) ->
-          cb null, repository
+          Git.Remote.lookup repository, 'origin'
+            .then (origin) ->
+              origin.setCallbacks callbacks
+              origin.connect Git.Enums.DIRECTION.FETCH
+                .then ->
+                  origin.getFetchRefspecs
+                .then (specs) ->
+                  origin.download specs
+            .then ->
+              repository.getReferenceCommit 'master'
+                .then (ours) ->
+                  repository.getReferenceCommit 'origin/master'
+                    .then (theirs) ->
+                      Git.Merge.commits repository, ours, theirs
+            .then ->
+              cb null, repository
         .catch (err) ->
           debug "open error: #{err}"
           cb err
