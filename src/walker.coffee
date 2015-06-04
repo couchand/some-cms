@@ -20,6 +20,14 @@ debug = require './debug'
 {copyFile} = require './cp'
 {clear} = require './static-cache'
 
+copy = (tree, entry, showEntry) ->
+  sourceFile = path.resolve tree.dir, entry
+  target = tree.getPath()
+
+  debug "copying #{sourceFile} to /#{target}#{if showEntry then "/#{entry}" else ''}"
+
+  copyFile sourceFile, target, entry
+
 walk = (tree, cb) ->
   clear (error) ->
     return cb error if error
@@ -49,35 +57,24 @@ doWalk = (tree, cb) ->
 
     switch match[1]
       when 'txt', 'html'
-        sourceFile = path.resolve tree.dir, selectedEntry
-        target = tree.getPath()
-
-        debug "copying #{sourceFile} to /#{target}"
-
-        copyFile sourceFile, target, selectedEntry
+        copy tree, selectedEntry
 
       when 'markdown', 'md'
         sourceFile = path.resolve tree.dir, selectedEntry
         target = tree.getPath()
 
-        debug "compiling #{sourceFile} to /#{target}"
-
         tree.getLayout (err, layout) ->
           if err
             return error = err
           else
+            debug "compiling #{sourceFile} to /#{target}"
             renderFile target, sourceFile, layout
 
     return if error
 
     for asset in assets
-      for entry in entries when asset.test entry
-        sourceFile = path.resolve tree.dir, entry
-        target = tree.getPath()
-
-        debug "copying asset #{sourceFile} to #{target}/#{entry}"
-
-        copyFile sourceFile, target, entry
+      for assetFile in entries when asset.test assetFile
+        copy tree, assetFile, yes
 
   return cb error if error
 

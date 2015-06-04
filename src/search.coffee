@@ -13,6 +13,8 @@ module.exports =
   ]
 
   assets: [
+
     /\.png$/
     /\.css$/
+
   ]
