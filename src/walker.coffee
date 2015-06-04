@@ -12,6 +12,9 @@
 
 path = require 'path'
 
+debug = require './debug'
+  .logger 'walker'
+
 {extension, patterns, assets} = require './search'
 {renderFile} = require './markdown'
 {copyFile} = require './cp'
@@ -42,14 +45,14 @@ doWalk = (tree, cb) ->
 
     return error = 500 unless match
 
-    console.log match
+    debug "found file to serve #{match[0]} in dir #{tree.getPath()}"
 
     switch match[1]
       when 'txt', 'html'
         sourceFile = path.resolve tree.dir, selectedEntry
         target = tree.getPath()
 
-        console.log "copying #{sourceFile} to /#{target}"
+        debug "copying #{sourceFile} to /#{target}"
 
         copyFile sourceFile, target, selectedEntry
 
@@ -57,7 +60,7 @@ doWalk = (tree, cb) ->
         sourceFile = path.resolve tree.dir, selectedEntry
         target = tree.getPath()
 
-        console.log "compiling #{sourceFile} to /#{target}"
+        debug "compiling #{sourceFile} to /#{target}"
 
         tree.getLayout (err, layout) ->
           if err
@@ -72,7 +75,7 @@ doWalk = (tree, cb) ->
         sourceFile = path.resolve tree.dir, entry
         target = tree.getPath()
 
-        console.log "copying asset #{sourceFile} to #{target}/#{entry}"
+        debug "copying asset #{sourceFile} to #{target}/#{entry}"
 
         copyFile sourceFile, target, entry
 

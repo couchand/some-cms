@@ -1,11 +1,20 @@
 # copy util
 
+fs = require 'fs'
 path = require 'path'
+
+debug = require './debug'
+  .logger 'cp'
 
 {staticCacheDir} = require './static-cache'
 
 module.exports =
   copyFile: (from, to, file, cb) ->
+    throwError = (err) ->
+      debug err
+      return cb err if cb
+      throw err
+
     targetDir = path.resolve staticCacheDir, to
 
     fs.stat targetDir, (err, stats) ->
@@ -20,16 +29,12 @@ module.exports =
     goAhead = (err) ->
       targetFile = path.resolve targetDir, file
 
-      console.log "copying #{targetFile} from #{from}"
+      debug "copying #{targetFile} from #{from}"
 
       source = fs.createReadStream from
       target = fs.createWriteStream targetFile
 
-      source.on 'end', ->
-        cb? null
-
-      source.on 'error', (err) ->
-        return cb err if cb
-        throw new Error err
+      source.on 'end', -> cb? null
+      source.on 'error', throwError
 
       source.pipe target

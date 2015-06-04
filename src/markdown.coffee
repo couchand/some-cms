@@ -3,6 +3,9 @@
 fs = require 'fs'
 path = require 'path'
 
+debug = require './debug'
+  .logger 'markdown'
+
 mdit = require 'markdown-it'
 
 {staticCacheDir} = require './static-cache'
@@ -16,6 +19,7 @@ module.exports =
 
   renderFile: (dir, file, layout, cb) ->
     throwError = (err) ->
+      debug err
       return cb err if cb
       throw err
 
@@ -35,7 +39,7 @@ module.exports =
 
       targetFile = path.resolve targetDir, 'index.html'
 
-      console.log "rendering #{targetFile} from #{file}"
+      debug "rendering #{targetFile} from #{file}"
 
       fs.readFile file, (err, data) ->
         return throwError new Error err if err

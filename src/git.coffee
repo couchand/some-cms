@@ -3,20 +3,24 @@
 fs = require 'fs'
 path = require 'path'
 
+debug = require './debug'
+  .logger 'git'
+
 Git = require 'nodegit'
 
 gitconfig = require '../config/git'
 
 openOrClone = (cb) ->
-  console.log 'hey'
   unless gitconfig.dir and gitconfig.repo
-    cb new Error "Git config expects a directory and repository."
+    msg = "Git config expects a directory and repository."
+    debug msg
+    cb new Error msg
 
   gitdir = path.resolve gitconfig.dir
 
   fs.stat gitdir, (err, stats) ->
     if err
-      console.log 'cloning'
+      debug "cloning into #{gitdir}"
 
       options =
         remoteCallbacks: credentials: (url, userName) ->
@@ -24,19 +28,18 @@ openOrClone = (cb) ->
 
       Git.Clone gitconfig.repo, gitdir, options
         .then (repository) ->
-          console.log repository
           cb null, repository
         .catch (err) ->
-          console.error err
+          debug "clone error: #{err}"
           cb err
     else
-      console.log 'opening'
+      debug "opening repository #{gitdir}"
+
       Git.Repository.open gitdir
         .then (repository) ->
-          console.log repository
           cb null, repository
         .catch (err) ->
-          console.error err
+          debug "open error: #{err}"
           cb err
 
 class Folder
