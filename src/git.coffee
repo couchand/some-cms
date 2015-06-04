@@ -39,13 +39,6 @@ openOrClone = (cb) ->
           console.error err
           cb err
 
-REPO = no
-
-openOrClone (err, repo) ->
-  throw err if err
-
-  REPO = repo
-
 class Folder
   constructor: (@parent, @name, @dir) ->
 
@@ -120,12 +113,12 @@ class Folder
 
           checkDone()
 
-
 module.exports =
-  getRoot: ->
-    return unless REPO
+  getRoot: (cb) ->
+    openOrClone (err, repo) ->
+      return cb err if err
 
-    gitpath = REPO.path()
-    root = path.resolve gitpath, '..'
+      gitpath = repo.path()
+      root = path.resolve gitpath, '..'
 
-    new Folder null, '', root
+      cb null, new Folder null, '', root
