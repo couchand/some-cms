@@ -10,18 +10,19 @@ Git = require 'nodegit'
 
 gitconfig = require '../config/git'
 
+gitdir = path.resolve gitconfig.dir
+
 openOrClone = (cb) ->
   unless gitconfig.dir and gitconfig.repo
     msg = "Git config expects a directory and repository."
     debug msg
     cb new Error msg
 
-  gitdir = path.resolve gitconfig.dir
-
   callbacks = credentials: (url, userName) ->
       Git.Cred.sshKeyFromAgent userName
   options =
     remoteCallbacks: callbacks
+#   bare: yes # when we fix teh file access
 
   fs.stat gitdir, (err, stats) ->
     if err
@@ -47,86 +48,120 @@ openOrClone = (cb) ->
           debug "open error: #{err}"
           cb err
 
-class Folder
-  constructor: (@parent, @name, @dir) ->
+# git branch is our draft
+class Draft
+  constructor: (@repo, @name) ->
+
+  getCurrentVersion: ->
+    @repo.getBranchCommit @name
+
+  getCurrentTree: ->
+    repo = @repo
+    @getCurrentVersion()
+      .then (commit) ->
+        repo.getTree commit.treeId()
+      .then (tree) ->
+        new Tree tree
+
+# git tree is our tree
+class Tree
+  constructor: (@tree) ->
+
+  getDir: ->
+    path.resolve gitdir, @getPath()
 
   getPath: ->
-    return '' unless @parent
+    @tree.path()
 
-    dir = @parent.getPath()
-    return @name unless dir
+  getChild: (child, cb) ->
+    entry = @tree.entryByName child
+    @getChildByEntry entry
+      .then (child) -> cb null, child
+      .catch cb
 
-    [dir, @name].join '/'
+  getChildByEntry: (entry) ->
+    unless entry.isTree()
+      throw new Error "not a tree!"
 
-  getChild: (child) ->
-    new Folder @, child, path.resolve @dir, child
+    entry
+      .getTree()
+      .then (tree) ->
+        new Tree tree
 
   getLayout: (cb) ->
-    layout = path.resolve @dir, '_layout.coffee'
-    fs.stat layout, (err, stats) ->
-      if err
-        unless @parent
-          cb null, (d) -> d
-          return
-
-        @parent.getLayout cb
-
-      else
-        cb null, require layout
-
-  getChildren: (cb) ->
-    me = @
-    @walk (err) ->
-      return cb err if err
-
-      cb null, me.children
+    cb 'not implemented'
 
   getEntries: (cb) ->
+    @walk()
+    cb null, @entries
+
+  getChildren: (cb) ->
+    @walk()
+    left = @fetchChildren.length
+    errors = []
+    children = []
+
     me = @
-    @walk (err) ->
-      return cb err if err
+    addTo = (list) -> (el) ->
+      list.push el
+    checkDone = ->
+      left -= 1
+      if left is 0
+        if errors.length
+          cb errors
+        else
+          me.children = children
+          cb null, children
 
-      cb null, me.entries
+    for getChild in @fetchChildren
+      getChild
+        .then addTo children
+        .catch addTo errors
+        .done checkDone
 
-  walk: (cb) ->
-    me = @
+  walk: ->
+    dirs = []
+    plain = []
 
-    fs.readdir @dir, (err, files) ->
-      dirs = []
-      plain = []
-      left = files.length
-      errors = []
+    for entry in @tree.entries()
+      if entry.isDirectory()
+        dirs.push entry
+      else if entry.isFile()
+        plain.push entry
 
-      checkDone = ->
-        left -= 1
-        if left is 0
-          if errors.length
-            cb errors
-          else
-            me.children = (me.getChild d for d in dirs)
-            me.entries = plain
-            cb null
+    @fetchChildren = (@getChildByEntry dir for dir in dirs)
+    @entries = (file.filename() for file in plain)
 
-      files.forEach (file) ->
-        absolute = path.resolve me.dir, file
-        fs.stat absolute, (err, stats) ->
-          if err
-            error.push err
-
-          else
-            if stats.isDirectory()
-              dirs.push file unless file[0] is '.'
-            else if stats.isFile()
-              plain.push file
-
-          checkDone()
+MASTER = 'refs/heads/master'
 
 module.exports =
-  getRoot: (cb) ->
+  getMaster: (cb) ->
     openOrClone (err, repo) ->
       return cb err if err
 
-      gitpath = repo.path()
-      root = path.resolve gitpath, '..'
+      repo
+        .getReferences()
+        .then (refs) ->
+          for ref in refs when ref.isBranch() and ref.name() is MASTER
+            new Draft repo, ref.name()
+        .then (drafts) ->
+          if drafts.length isnt 1
+            cb new Error "Master branch not found!"
+          else
+            cb null, drafts[0]
 
-      cb null, new Folder null, '', root
+        .catch cb
+
+  getDrafts: (cb) ->
+    openOrClone (err, repo) ->
+      return cb err if err
+
+      repo
+        .getReferences()
+        .then (refs) ->
+          for ref in refs when ref.isBranch() and ref.name() isnt MASTER
+            new Draft repo, ref.name()
+        .then (drafts) ->
+          cb null, drafts
+
+        .catch cb

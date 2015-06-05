@@ -6,8 +6,12 @@ require 'debug'
 git = require '../src/git'
 walker = require '../src/walker'
 
-git.getRoot (err, root) ->
+git.getMaster (err, master) ->
   if err
     throw err
 
-  walker.walk root
+  master
+    .getCurrentTree()
+    .then (tree) ->
+
+      walker.walk tree

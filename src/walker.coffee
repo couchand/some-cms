@@ -21,7 +21,7 @@ debug = require './debug'
 {clear} = require './static-cache'
 
 copy = (tree, entry, showEntry) ->
-  sourceFile = path.resolve tree.dir, entry
+  sourceFile = path.resolve tree.getDir(), entry
   target = tree.getPath()
 
   debug "copying #{sourceFile} to /#{target}#{if showEntry then "/#{entry}" else ''}"
@@ -53,22 +53,22 @@ doWalk = (tree, cb) ->
 
     return error = 500 unless match
 
-    debug "found file to serve #{match[0]} in dir #{tree.getPath()}"
+    debug "found file to serve #{selectedEntry} in dir /#{tree.getPath()}"
 
     switch match[1]
       when 'txt', 'html'
         copy tree, selectedEntry
 
       when 'markdown', 'md'
-        sourceFile = path.resolve tree.dir, selectedEntry
+        sourceFile = path.resolve tree.getDir(), selectedEntry
         target = tree.getPath()
 
-        tree.getLayout (err, layout) ->
-          if err
-            return error = err
-          else
-            debug "compiling #{sourceFile} to /#{target}"
-            renderFile target, sourceFile, layout
+#        tree.getLayout (err, layout) ->
+#          if err
+#            return error = err
+#          else
+        debug "compiling #{sourceFile} to /#{target}"
+        renderFile target, sourceFile, (d) -> d#layout
 
     return if error
 
