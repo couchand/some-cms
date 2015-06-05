@@ -23,4 +23,14 @@ clear = (cb) ->
 
     cb?()
 
-module.exports = {staticCacheDir, clear}
+openStaticCache = (cb) ->
+  fs.stat staticCacheDir, (err, stats) ->
+    if err
+      return fs.mkdir staticCacheDir, -> cb null, staticCacheDir
+
+    else unless stats.isDirectory()
+      return cb new Error "static cache is a regular file!!!"
+
+    cb null, staticCacheDir
+
+module.exports = {openStaticCache, clear}

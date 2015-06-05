@@ -8,7 +8,7 @@ debug = require './debug'
 
 mdit = require 'markdown-it'
 
-{staticCacheDir} = require './static-cache'
+{openStaticCache} = require './static-cache'
 
 md = mdit
   typographer: yes
@@ -23,16 +23,21 @@ module.exports =
       return cb err if cb
       throw err
 
-    targetDir = path.resolve staticCacheDir, dir
+    targetDir = ''
 
-    fs.stat targetDir, (err, stats) ->
-      if err
-        fs.mkdir targetDir, goAhead
+    openStaticCache (err, staticCacheDir) ->
+      return throwError new Error err if err
 
-      else unless stats.isDirectory()
-        return throwError new Error "target directory is a regular file!!!"
+      targetDir = path.resolve staticCacheDir, dir
 
-      goAhead()
+      fs.stat targetDir, (err, stats) ->
+        if err
+          fs.mkdir targetDir, goAhead
+
+        else unless stats.isDirectory()
+          return throwError new Error "target directory is a regular file!!!"
+
+        goAhead()
 
     goAhead = (err) ->
       targetFile = path.resolve targetDir, 'index.html'

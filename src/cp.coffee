@@ -6,7 +6,7 @@ path = require 'path'
 debug = require './debug'
   .logger 'cp'
 
-{staticCacheDir} = require './static-cache'
+{openStaticCache} = require './static-cache'
 
 module.exports =
   copyFile: (from, to, file, cb) ->
@@ -15,16 +15,21 @@ module.exports =
       return cb err if cb
       throw err
 
-    targetDir = path.resolve staticCacheDir, to
+    targetDir = ''
 
-    fs.stat targetDir, (err, stats) ->
-      if err
-        fs.mkdir targetDir, goAhead
+    openStaticCache (err, staticCacheDir) ->
+      throwError new Error err if err
 
-      else unless stats.isDirectory()
-        return throwError new Error "target directory is a regular file!!!"
+      targetDir = path.resolve staticCacheDir, to
 
-      goAhead()
+      fs.stat targetDir, (err, stats) ->
+        if err
+          return fs.mkdir targetDir, goAhead
+
+        else unless stats.isDirectory()
+          return throwError new Error "target directory is a regular file!!!"
+
+        goAhead()
 
     goAhead = (err) ->
       targetFile = path.resolve targetDir, file
