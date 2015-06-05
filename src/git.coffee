@@ -38,20 +38,9 @@ openOrClone = (cb) ->
 
       Git.Repository.open gitdir
         .then (repository) ->
-          Git.Remote.lookup repository, 'origin'
-            .then (origin) ->
-              origin.setCallbacks callbacks
-              origin.connect Git.Enums.DIRECTION.FETCH
-                .then ->
-                  origin.getFetchRefspecs
-                .then (specs) ->
-                  origin.download specs
+          repository.fetchAll callbacks
             .then ->
-              repository.getReferenceCommit 'master'
-                .then (ours) ->
-                  repository.getReferenceCommit 'origin/master'
-                    .then (theirs) ->
-                      Git.Merge.commits repository, ours, theirs
+              repository.mergeBranches "master", "origin/master"
             .then ->
               cb null, repository
         .catch (err) ->
