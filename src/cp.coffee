@@ -18,7 +18,7 @@ module.exports =
     targetDir = ''
 
     openStaticCache (err, staticCacheDir) ->
-      throwError new Error err if err
+      return throwError new Error err if err
 
       targetDir = path.resolve staticCacheDir, to
 
@@ -32,6 +32,8 @@ module.exports =
         goAhead()
 
     goAhead = (err) ->
+      return throwError new Error err if err
+
       targetFile = path.resolve targetDir, file
 
       debug "copying #{targetFile} from #{from}"
