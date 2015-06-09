@@ -91,6 +91,6 @@ doWalk = (tree, cb) ->
         if error then cb error else cb null
 
     for child in children
-      walk child, checkDone
+      doWalk child, checkDone
 
 module.exports = {walk}
