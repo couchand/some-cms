@@ -34,14 +34,25 @@ module.exports =
     goAhead = (err) ->
       return throwError new Error err if err
 
-      targetFile = path.resolve targetDir, file
+      targetFile = path.resolve targetDir, file.filename()
 
       debug "copying #{targetFile} from #{from}"
 
-      source = fs.createReadStream from
-      target = fs.createWriteStream targetFile
+      debug "getting blob"
+      file.getBlob().then (blob) ->
+        mode = blob.filemode()
 
-      source.on 'end', -> cb? null
-      source.on 'error', throwError
+        debug "opening #{targetFile} for writing with mode #{mode}"
+        target = fs.open targetFile, 'w', mode, (err, fd) ->
+          return throwError err if err
 
-      source.pipe target
+          debug "opened fd #{fd}"
+
+          size = blob.rawsize()
+          content = blob.content()
+          debug "writing blob content, #{size} bytes"
+          fs.write fd, content, 0, size, 0, (err, written) ->
+            return throwError err if err
+
+            debug "blob written, #{written} bytes"
+            cb? null

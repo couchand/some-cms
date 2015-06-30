@@ -21,7 +21,7 @@ debug = require './debug'
 {clear} = require './static-cache'
 
 copy = (tree, entry, showEntry) ->
-  sourceFile = path.resolve tree.getDir(), entry
+  sourceFile = path.resolve tree.getDir(), entry.filename()
   target = tree.getPath()
 
   debug "copying #{sourceFile} to /#{target}#{if showEntry then "/#{entry}" else ''}"
@@ -43,24 +43,24 @@ doWalk = (tree, cb) ->
     selectedEntry = no
 
     for pattern in patterns when not selectedEntry
-      for entry in entries when pattern.test entry
+      for entry in entries when pattern.test entry.filename()
         selectedEntry = entry
         break
 
     return error = 404 unless selectedEntry
 
-    match = extension.exec selectedEntry
+    match = extension.exec selectedEntry.filename()
 
     return error = 500 unless match
 
-    debug "found file to serve #{selectedEntry} in dir /#{tree.getPath()}"
+    debug "found file to serve #{selectedEntry.filename()} in dir /#{tree.getPath()}"
 
     switch match[1]
       when 'txt', 'html'
         copy tree, selectedEntry
 
       when 'markdown', 'md'
-        sourceFile = path.resolve tree.getDir(), selectedEntry
+        sourceFile = path.resolve tree.getDir(), selectedEntry.filename()
         target = tree.getPath()
 
 #        tree.getLayout (err, layout) ->
@@ -73,7 +73,7 @@ doWalk = (tree, cb) ->
     return if error
 
     for asset in assets
-      for assetFile in entries when asset.test assetFile
+      for assetFile in entries when asset.test assetFile.filename()
         copy tree, assetFile, yes
 
   return cb error if error

@@ -130,7 +130,7 @@ class Tree
         plain.push entry
 
     @fetchChildren = (@getChildByEntry dir for dir in dirs)
-    @entries = (file.filename() for file in plain)
+    @entries = plain
 
 MASTER = 'refs/heads/master'
 
