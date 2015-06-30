@@ -12,6 +12,16 @@ gitconfig = require '../config/git'
 
 gitdir = path.resolve gitconfig.dir
 
+{openLayoutCache, clear} = require './layout-cache'
+
+layoutCacheDir = null
+# clear once on application start
+clear ->
+  openLayoutCache (err, cacheDir) ->
+    throw err if err
+
+    layoutCacheDir = cacheDir
+
 openOrClone = (cb) ->
   unless gitconfig.dir and gitconfig.repo
     msg = "Git config expects a directory and repository."
@@ -65,7 +75,7 @@ class Draft
 
 # git tree is our tree
 class Tree
-  constructor: (@tree) ->
+  constructor: (@tree, @parent) ->
 
   getDir: ->
     path.resolve gitdir, @getPath()
@@ -83,13 +93,50 @@ class Tree
     unless entry.isTree()
       throw new Error "not a tree!"
 
+    me = @
+
     entry
       .getTree()
       .then (tree) ->
-        new Tree tree
+        new Tree tree, me
 
   getLayout: (cb) ->
-    cb 'not implemented'
+    unless @getPath
+      console.log @toString()
+      return
+
+    debug "getting layout for /#{@getPath()}"
+
+    me = @
+    base = @parent
+
+    finish = (entry) ->
+      debug "entry found at path /#{me.getPath()}/#{entry.filename()}"
+
+      entry.getBlob().then (blob) ->
+        debug "layout loaded, #{blob.rawsize()} bytes"
+
+        cachedLayout = path.resolve layoutCacheDir, me.getPath(), '_layout.coffee'
+
+        fs.stat cachedLayout, (err, stats) ->
+          if err
+            fs.writeFileSync cachedLayout, blob.content()
+
+          layout = require cachedLayout
+          cb null, layout
+
+    @getEntries (err, entries) ->
+      debug "inspecting #{entries.length} entries"
+
+      for entry in entries when '_layout.coffee' is entry.filename()
+        return finish entry
+
+      debug "entry not found at path /#{me.getPath()}"
+
+      if base
+        base.getLayout cb
+      else
+        cb null, String
 
   getEntries: (cb) ->
     @walk()

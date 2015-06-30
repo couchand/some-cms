@@ -35,8 +35,6 @@ walk = (tree, cb) ->
     nextStep = -> doWalk tree, cb or ->
     setTimeout nextStep, 10
 
-layout = (d) -> d
-
 doWalk = (tree, cb) ->
   error = no
 
@@ -66,12 +64,12 @@ doWalk = (tree, cb) ->
         sourceFile = path.resolve tree.getDir(), selectedEntry.filename()
         target = tree.getPath()
 
-#        tree.getLayout (err, layout) ->
-#          if err
-#            return error = err
-#          else
-        debug "compiling #{sourceFile} to /#{target}"
-        renderFile target, selectedEntry, layout
+        tree.getLayout (err, layout) ->
+          if err
+            return error = err
+          else
+            debug "compiling #{sourceFile} to /#{target}"
+            renderFile target, selectedEntry, layout
 
     return if error
 

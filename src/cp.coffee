@@ -18,7 +18,7 @@ module.exports =
     targetDir = ''
 
     openStaticCache (err, staticCacheDir) ->
-      return throwError new Error err if err
+      return throwError err if err
 
       targetDir = path.resolve staticCacheDir, to
 
@@ -32,7 +32,7 @@ module.exports =
         goAhead()
 
     goAhead = (err) ->
-      return throwError new Error err if err
+      #return throwError err if err
 
       targetFile = path.resolve targetDir, file.filename()
 

@@ -21,15 +21,22 @@ clear = (cb) ->
   rimraf staticCacheDir, (err) ->
     throw new Error err if err
 
+    debug "cache clear"
+
     cb?()
 
 openStaticCache = (cb) ->
+  debug "opening cache"
+
   fs.stat staticCacheDir, (err, stats) ->
     if err
+      debug "making cache dir"
       return fs.mkdir staticCacheDir, -> cb null, staticCacheDir
 
     else unless stats.isDirectory()
       return cb new Error "static cache is a regular file!!!"
+
+    debug "cache ready"
 
     cb null, staticCacheDir
 
