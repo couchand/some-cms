@@ -44,12 +44,17 @@ module.exports =
 
       targetFile = path.resolve targetDir, 'index.html'
 
-      debug "rendering #{targetFile} from #{file}"
+      debug "getting blob for #{file.filename()}"
 
-      fs.readFile file, (err, data) ->
-        return throwError new Error err if err
+      file.getBlob().then (blob) ->
+        debug "got blob #{file.filename()}"
 
+        debug "rendering #{targetFile} from #{file.filename()}"
+
+        data = blob.content()
         rendered = layout render data.toString()
+
+        debug "writing file #{targetFile}"
 
         fs.writeFile targetFile, rendered, (err) ->
           return throwError new Error err if err

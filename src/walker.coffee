@@ -32,7 +32,10 @@ walk = (tree, cb) ->
   clear (error) ->
     return cb error if error
 
-    doWalk tree, cb or ->
+    nextStep = -> doWalk tree, cb or ->
+    setTimeout nextStep, 10
+
+layout = (d) -> d
 
 doWalk = (tree, cb) ->
   error = no
@@ -68,7 +71,7 @@ doWalk = (tree, cb) ->
 #            return error = err
 #          else
         debug "compiling #{sourceFile} to /#{target}"
-        renderFile target, sourceFile, (d) -> d#layout
+        renderFile target, selectedEntry, layout
 
     return if error
 
