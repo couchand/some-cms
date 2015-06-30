@@ -32,7 +32,7 @@ openOrClone = (cb) ->
       Git.Cred.sshKeyFromAgent userName
   options =
     remoteCallbacks: callbacks
-#   bare: yes # when we fix teh file access
+    bare: 1 # c true
 
   fs.stat gitdir, (err, stats) ->
     if err
