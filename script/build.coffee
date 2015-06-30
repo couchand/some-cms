@@ -14,4 +14,5 @@ git.getMaster (err, master) ->
     .getCurrentTree()
     .then (tree) ->
 
-      walker.walk tree
+      walker.walk tree, (err) ->
+        console.error err if err
