@@ -28,10 +28,13 @@ openOrClone = (cb) ->
     debug msg
     cb new Error msg
 
+  branch = gitconfig.branch or "master"
+
   callbacks = credentials: (url, userName) ->
       Git.Cred.sshKeyFromAgent userName
   options =
     remoteCallbacks: callbacks
+    checkoutBranch: branch
     # TODO: restore when bare actually works
     #bare: 1 # c true
 
@@ -52,7 +55,8 @@ openOrClone = (cb) ->
         .then (repository) ->
           repository.fetchAll callbacks
             .then ->
-              repository.mergeBranches "master", "origin/master"
+              branch = gitconfig.branch or "master"
+              repository.mergeBranches branch, "origin/#{branch}"
             .then ->
               cb null, repository
         .catch (err) ->
@@ -183,6 +187,16 @@ class Tree
 MASTER = 'refs/heads/master'
 
 module.exports =
+  getCurrent: (cb) ->
+    openOrClone (err, repo) ->
+      return cb err if err
+
+      repo
+        .getCurrentBranch()
+        .then (branch) ->
+          cb null, new Draft repo, branch.name()
+        .catch cb
+###
   getMaster: (cb) ->
     openOrClone (err, repo) ->
       return cb err if err
@@ -213,3 +227,4 @@ module.exports =
           cb null, drafts
 
         .catch cb
+###

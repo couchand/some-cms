@@ -1,20 +1,23 @@
 # build the site
 
-debug = require '../src/debug'
-  .enable()
+{branch} = require '../config/git'
+branch ?= "master"
 
-git = require '../src/git'
-walker = require '../src/walker'
+debug = require './debug'
+  .logger 'build'
+
+git = require './git'
+walker = require './walker'
 
 build = ->
 
-  debug "Loading master"
-  git.getMaster (err, master) ->
+  debug "Loading #{branch}"
+  git.getCurrent (err, current) ->
     if err
       throw err
 
     debug "Getting tree root"
-    master
+    current
       .getCurrentTree()
       .then (tree) ->
 
