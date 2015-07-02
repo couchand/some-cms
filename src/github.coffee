@@ -39,7 +39,7 @@ onPush = (repo, secret, cb) ->
         .update body
         .digest 'hex'
 
-      if hash isnt signature
+      if "sha1=#{hash}" isnt signature
         debug "Signature mismatch!"
         return next()
 
