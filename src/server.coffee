@@ -19,6 +19,12 @@ github = require './github'
 debug "Creating server"
 app = express()
 
+app.get "/ping", (req, res) ->
+  ip = req.headers['x-forwarded-for'] or req.connection.remoteAddress
+
+  debug "Ping from #{ip}"
+  res.send "You rang?"
+
 if GITHUB_REPO_RE.test repo
   match = GITHUB_REPO_RE.exec repo
   repoName = match[1]
