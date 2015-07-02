@@ -1,8 +1,23 @@
 #!/usr/local/bin/coffee
 # build the site
 
+debug = require '../src/debug'
+  .enable()
+  .logger 'script'
+
 {build} = require '../src/build'
 
-return if module.parent?
+debug "Starting build script"
 
-build()
+if module.parent?
+  debug.error  "Script required, bailing"
+  return
+
+debug "Building"
+
+try
+  build()
+catch ex
+  debug.error "Build error: #{ex}"
+
+debug "Build complete"
