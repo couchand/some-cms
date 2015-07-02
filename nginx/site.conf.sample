@@ -1,0 +1,11 @@
+server {
+  location / {
+    root /path/to/some-cms/static-cache;
+
+    index index.html index.txt;
+
+    try_files $uri $uri/ $uri.html =404;
+
+    error_page 404 = /404;
+  }
+}
