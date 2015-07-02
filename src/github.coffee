@@ -24,8 +24,8 @@ onPush = (repo, secret, cb) ->
     event = req.headers["x-github-event"]
 
     return throwError "GitHub hook missing X-GitHub-Event header!" unless event
-    unless event is "PushEvent"
-      debug "#{event} is not a PushEvent"
+    unless event is "push"
+      debug "#{event} is not a push event"
       return next()
 
     body = req.body.toString()
