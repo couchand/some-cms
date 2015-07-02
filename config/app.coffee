@@ -3,3 +3,5 @@
 module.exports =
   layoutCacheDir: 'layout-cache'
   staticCacheDir: 'static-cache'
+
+  serverPort: 31337

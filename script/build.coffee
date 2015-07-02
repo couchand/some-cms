@@ -6,16 +6,24 @@ debug = require '../src/debug'
 git = require '../src/git'
 walker = require '../src/walker'
 
-debug "Loading master"
-git.getMaster (err, master) ->
-  if err
-    throw err
+build = ->
 
-  debug "Getting tree root"
-  master
-    .getCurrentTree()
-    .then (tree) ->
+  debug "Loading master"
+  git.getMaster (err, master) ->
+    if err
+      throw err
 
-      debug "Walking tree"
-      walker.walk tree, (err) ->
-        console.error err if err
+    debug "Getting tree root"
+    master
+      .getCurrentTree()
+      .then (tree) ->
+
+        debug "Walking tree"
+        walker.walk tree, (err) ->
+          console.error err if err
+
+module.exports = {build}
+
+return if module.parent?
+
+build()
