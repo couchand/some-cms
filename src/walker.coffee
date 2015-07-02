@@ -18,7 +18,8 @@ debug = require './debug'
 {extension, patterns, assets} = require './search'
 {renderFile} = require './markdown'
 {copyFile} = require './cp'
-{clear} = require './static-cache'
+staticCache = require './static-cache'
+layoutCache = require './layout-cache'
 
 copy = (tree, entry, showEntry) ->
   sourceFile = path.resolve tree.getDir(), entry.filename()
@@ -29,11 +30,15 @@ copy = (tree, entry, showEntry) ->
   copyFile sourceFile, target, entry
 
 walk = (tree, cb) ->
-  clear (error) ->
+  staticCache.clear (error) ->
     return cb error if error
 
-    nextStep = -> doWalk tree, cb or ->
-    setTimeout nextStep, 10
+    layoutCache.clear (error) ->
+      return cb error if error
+
+      layoutCache.openLayoutCache ->
+        nextStep = -> doWalk tree, cb or ->
+        setTimeout nextStep, 10
 
 doWalk = (tree, cb) ->
   error = no
