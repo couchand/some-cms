@@ -23,7 +23,3 @@ build = ->
           console.error err if err
 
 module.exports = {build}
-
-return if module.parent?
-
-build()

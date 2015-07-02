@@ -14,7 +14,7 @@ debug = require './debug'
 express = require 'express'
 
 github = require './github'
-{build} = require '../script/build'
+{build} = require './build'
 
 debug "Creating server"
 app = express()

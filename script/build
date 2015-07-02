@@ -1,0 +1,8 @@
+#!/usr/local/bin/coffee
+# build the site
+
+{build} = require '../src/build'
+
+return if module.parent?
+
+build()
