@@ -2,4 +2,7 @@
 
 module.exports =
   repo: "git@github.com:username/repository.git"
+  branch: "master"
+
   dir: "/path/to/my/repo/locally"
+  webhookSecret: "foobar"
