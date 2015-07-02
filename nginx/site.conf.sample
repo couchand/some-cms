@@ -8,4 +8,8 @@ server {
 
     error_page 404 = /404;
   }
+
+  location /github/hook {
+    proxy_pass http://localhost:9876;
+  }
 }
