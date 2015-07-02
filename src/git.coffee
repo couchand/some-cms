@@ -3,6 +3,8 @@
 fs = require 'fs'
 path = require 'path'
 
+coffee = require 'coffee-script'
+
 debug = require './debug'
   .logger 'git'
 
@@ -121,11 +123,11 @@ class Tree
       entry.getBlob().then (blob) ->
         debug "layout loaded, #{blob.rawsize()} bytes"
 
-        cachedLayout = path.resolve layoutCacheDir, me.getPath(), '_layout.coffee'
+        cachedLayout = path.resolve layoutCacheDir, me.getPath(), '_layout.js'
 
         fs.stat cachedLayout, (err, stats) ->
           if err
-            fs.writeFileSync cachedLayout, blob.content()
+            fs.writeFileSync cachedLayout, coffee.compile blob.content().toString()
 
           layout = require cachedLayout
           cb null, layout
