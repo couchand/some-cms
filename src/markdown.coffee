@@ -51,7 +51,8 @@ module.exports =
         debug "rendering #{targetFile} from #{file.filename()}"
 
         data = blob.content()
-        rendered = layout render data.toString()
+        content = render data.toString()
+        rendered = layout content, dir
 
         debug "writing file #{targetFile}"
 
