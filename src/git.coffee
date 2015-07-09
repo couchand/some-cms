@@ -117,13 +117,12 @@ class Tree
     me = @
     base = @parent
 
-    goAhead = (entry) ->
+    finish = (entry) =>
       debug "entry found at path /#{me.getPath()}/#{entry.filename()}"
 
       entry.getBlob().then (blob) ->
         debug "layout loaded, #{blob.rawsize()} bytes"
 
-      finish = (err, myLayoutDir) ->
         cachedLayout = path.resolve myLayoutDir, '_layout.js'
 
         fs.stat cachedLayout, (err, stats) ->
@@ -133,6 +132,20 @@ class Tree
           layout = require cachedLayout
           cb null, layout
 
+    goAhead = =>
+      @getEntries (err, entries) ->
+        debug "inspecting #{entries.length} entries"
+
+        for entry in entries when '_layout.coffee' is entry.filename()
+          return finish entry
+
+        debug "entry not found at path /#{me.getPath()}"
+
+        if base
+          base.getLayout cb
+        else
+          cb null, String
+
     myLayoutDir = path.resolve layoutCacheDir, me.getPath()
     fs.stat myLayoutDir, (err, stats) ->
       if err
@@ -141,19 +154,6 @@ class Tree
 
       debug "cache ready"
       goAhead null, myLayoutDir
-
-    @getEntries (err, entries) ->
-      debug "inspecting #{entries.length} entries"
-
-      for entry in entries when '_layout.coffee' is entry.filename()
-        return finish entry
-
-      debug "entry not found at path /#{me.getPath()}"
-
-      if base
-        base.getLayout cb
-      else
-        cb null, String
 
   getEntries: (cb) ->
     @walk()
