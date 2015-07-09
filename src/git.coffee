@@ -123,7 +123,7 @@ class Tree
       entry.getBlob().then (blob) ->
         debug "layout loaded, #{blob.rawsize()} bytes"
 
-        cachedLayout = path.resolve myLayoutDir, '_layout.js'
+        cachedLayout = path.resolve layoutCacheDir, me.getPath(), '_layout.js'
 
         fs.stat cachedLayout, (err, stats) ->
           if err
@@ -132,28 +132,28 @@ class Tree
           layout = require cachedLayout
           cb null, layout
 
-    goAhead = =>
-      @getEntries (err, entries) ->
-        debug "inspecting #{entries.length} entries"
+    goAhead = (filename) ->
+      myLayoutDir = path.resolve layoutCacheDir, me.getPath()
+      fs.stat myLayoutDir, (err, stats) ->
+        if err
+          debug "making cache dir"
+          return fs.mkdir myLayoutDir, -> finish filename
 
-        for entry in entries when '_layout.coffee' is entry.filename()
-          return finish entry
+        debug "cache ready"
+        finish filename
 
-        debug "entry not found at path /#{me.getPath()}"
+    @getEntries (err, entries) ->
+      debug "inspecting #{entries.length} entries"
 
-        if base
-          base.getLayout cb
-        else
-          cb null, String
+      for entry in entries when '_layout.coffee' is entry.filename()
+        return goAhead entry
 
-    myLayoutDir = path.resolve layoutCacheDir, me.getPath()
-    fs.stat myLayoutDir, (err, stats) ->
-      if err
-        debug "making cache dir"
-        return fs.mkdir myLayoutDir, -> goAhead null, myLayoutDir
+      debug "entry not found at path /#{me.getPath()}"
 
-      debug "cache ready"
-      goAhead null, myLayoutDir
+      if base
+        base.getLayout cb
+      else
+        cb null, String
 
   getEntries: (cb) ->
     @walk()
