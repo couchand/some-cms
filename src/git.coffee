@@ -117,7 +117,7 @@ class Tree
     me = @
     base = @parent
 
-    finish = (entry) ->
+    goAhead = (entry) ->
       debug "entry found at path /#{me.getPath()}/#{entry.filename()}"
 
       entry.getBlob().then (blob) ->
@@ -137,10 +137,10 @@ class Tree
     fs.stat myLayoutDir, (err, stats) ->
       if err
         debug "making cache dir"
-        return fs.mkdir myLayoutDir, -> cb null, myLayoutDir
+        return fs.mkdir myLayoutDir, -> goAhead null, myLayoutDir
 
       debug "cache ready"
-      cb null, myLayoutDir
+      goAhead null, myLayoutDir
 
     @getEntries (err, entries) ->
       debug "inspecting #{entries.length} entries"
