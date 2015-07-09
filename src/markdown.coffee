@@ -7,11 +7,12 @@ debug = require './debug'
   .logger 'markdown'
 
 mdit = require 'markdown-it'
+mditContainer = require 'markdown-it-container'
 
 {openStaticCache} = require './static-cache'
 
-md = mdit
-  typographer: yes
+md = mdit typographer: yes
+  .use mditContainer, 'frame'
 
 module.exports =
   render: render = (source) ->
