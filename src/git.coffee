@@ -123,7 +123,8 @@ class Tree
       entry.getBlob().then (blob) ->
         debug "layout loaded, #{blob.rawsize()} bytes"
 
-        cachedLayout = path.resolve layoutCacheDir, me.getPath(), '_layout.js'
+      finish = (err, myLayoutDir) ->
+        cachedLayout = path.resolve myLayoutDir, '_layout.js'
 
         fs.stat cachedLayout, (err, stats) ->
           if err
@@ -131,6 +132,15 @@ class Tree
 
           layout = require cachedLayout
           cb null, layout
+
+      myLayoutDir = path.resolve layoutCacheDir, me.getPath()
+      fs.stat myLayoutDir, (err, stats) ->
+        if err
+          debug "making cache dir"
+          return fs.mkdir myLayoutDir, -> cb null, myLayoutDir
+
+        debug "cache ready"
+        cb null, myLayoutDir
 
     @getEntries (err, entries) ->
       debug "inspecting #{entries.length} entries"

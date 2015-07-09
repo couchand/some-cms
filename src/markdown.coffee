@@ -41,8 +41,6 @@ module.exports =
         goAhead()
 
     goAhead = (err) ->
-      return throwError new Error err if err
-
       targetFile = path.resolve targetDir, 'index.html'
 
       debug "getting blob for #{file.filename()}"
