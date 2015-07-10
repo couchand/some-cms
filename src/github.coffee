@@ -24,6 +24,10 @@ onPush = (repo, secret, cb) ->
     event = req.headers["x-github-event"]
 
     return throwError "GitHub hook missing X-GitHub-Event header!" unless event
+    if event is "ping"
+      debug "reponding to ping"
+      return res.sendStatus 200
+
     unless event is "push"
       debug "#{event} is not a push event"
       return next()
